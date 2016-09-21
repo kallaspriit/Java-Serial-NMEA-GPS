@@ -9,3 +9,9 @@
 
 ## Usage
 - `gradle run` - builds and runs the example
+
+## Example output
+- 58.383602, 26.71938 (got fix)
+- 58.383602, 26.719387 (got fix)
+- 58.383602, 26.719387 (got fix)
+- ...
