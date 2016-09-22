@@ -1,6 +1,6 @@
 package gps;
 
-import gnu.io.*;
+import com.fazecast.jSerialComm.SerialPort;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,15 +32,35 @@ public class SerialGps {
         stateListeners.add(stateListener);
     }
 
-    public void start() throws UnsupportedCommOperationException, NoSuchPortException, PortInUseException, IOException {
+    public void start() {
         NMEA nmea = new NMEA();
 
-        CommPortIdentifier portId = CommPortIdentifier.getPortIdentifier(portName);
-        SerialPort serialPort = (SerialPort) portId.open("gps.SerialGps application", 5000);
-        serialPort.setSerialPortParams(baudRate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-        serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
+        SerialPort[] serialPorts = SerialPort.getCommPorts();
+        SerialPort gpsPort = null;
 
-        InputStream inStream = serialPort.getInputStream();
+        for (SerialPort serialPort : serialPorts) {
+            if (serialPort.getDescriptivePortName().toLowerCase().contains("serial")) {
+                gpsPort = serialPort;
+            }
+        }
+
+        if (gpsPort == null) {
+            System.out.println("failed to find gps serial port");
+
+            return;
+        }
+
+        System.out.println("using serial port: " + gpsPort.getDescriptivePortName());
+
+        gpsPort.setBaudRate(4800);
+        gpsPort.openPort();
+        InputStream inStream = gpsPort.getInputStream();
+
+        if (inStream == null) {
+            System.out.println("opening port " + gpsPort.getDescriptivePortName() + " failed");
+
+            return;
+        }
 
         Thread thread = new Thread(() -> {
             String line = "";
